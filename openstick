@@ -15,71 +15,114 @@
 #    limitations under the License.
 #
 
-version = '1.0.0-8ea42ea'
 
 import argparse
 import configparser
 import names
 import os
-import random
 import socket
 
-def getFwPort(port):
-    return random.randrange(1024, 32768, 1)
+version = '1.0.0-8ea42ea'
+
+
+def get_open_port():
+    """
+    http://stackoverflow.com/questions/2838244/get-open-tcp-port-in-python/2838309#2838309
+    :return: free port
+    """
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(("", 0))
+    s.listen(1)
+    port = s.getsockname()[1]
+    s.close()
+    return port
+
+
+def get_fw_port(port):
+    return get_open_port()
 
 # Parse command line arguments.
 parser = argparse.ArgumentParser(description='Because sometimes you don\'t need a full stack')
 
-parser.add_argument('-b', '--boot',
-        help='Boot option. Can be hdd, cdrom or network.',
-        dest='boot')
-parser.add_argument('-c', '--cores',
-        help='Number of cores for the virtual machine.',
-        dest='cores')
-parser.add_argument('-d', '--disk',
-        help='Path to a disk image',
-        dest='disk')
-parser.add_argument('-e', '--domains',
-        help='DNS to look for.',
-        dest='domains')
-parser.add_argument('--file', 
-	   help='Path to the configuration file. Default is ~/.openstick',
-	   dest='configuration_file_path',
-	   default=os.path.expanduser('~') + '/.openstick')
-parser.add_argument('-f', '--format',
-        help='Format to use for images.',
-        dest='format')
-parser.add_argument('-j', '--hostname',
-        help='Hostname of the virtual machine.',
-        dest='hostname')
-parser.add_argument('-i', '--image',
-        help='Virtual machine hard drive image path',
-        dest='image')
-parser.add_argument('-m', '--memory',
-        help='Memory size of the virtual machine.',
-        dest='memory')
-parser.add_argument('-n', '--name', 
-	   help='Name of the virtual machine. Default is a random name.',
-	   dest='name',
-	   default=names.get_first_name())
-parser.add_argument('-p', '--ports',
-        help='Ports to forward.',
-        dest='ports')
-parser.add_argument('-r', '--root', 
-        help='Path to a virtual machine image to use as root (base).',
-        dest='root_image_path')
-parser.add_argument('-s', '--size',
-        help='Size of the virtual machine hard drive.',
-        dest='size')
-parser.add_argument('-u', '--sockets',
-        help='Number of CPU sockets',
-        dest='sockets')
-parser.add_argument('-t', '--threads',
-        help='Number of threads by core.',
-        dest='threads')
+parser.add_argument(
+    '-b', '--boot',
+    help='Boot option. Can be hdd, cdrom or network.',
+    dest='boot'
+)
+parser.add_argument(
+    '-c', '--cores',
+    help='Number of cores for the virtual machine.',
+    dest='cores'
+)
+parser.add_argument(
+    '-d', '--disk',
+    help='Path to a disk image',
+    dest='disk'
+)
+parser.add_argument(
+    '-e', '--domains',
+    help='DNS to look for.',
+    dest='domains'
+)
+parser.add_argument(
+    '--file',
+    help='Path to the configuration file. Default is ~/.openstick',
+    dest='configuration_file_path',
+    default=os.path.expanduser('~') + '/.openstick'
+)
+parser.add_argument(
+    '-f', '--format',
+    help='Format to use for images.',
+    dest='format'
+)
+parser.add_argument(
+    '-j', '--hostname',
+    help='Hostname of the virtual machine.',
+    dest='hostname'
+)
+parser.add_argument(
+    '-i', '--image',
+    help='Virtual machine hard drive image path',
+    dest='image'
+)
+parser.add_argument(
+    '-m', '--memory',
+    help='Memory size of the virtual machine.',
+    dest='memory'
+)
+parser.add_argument(
+    '-n', '--name',
+    help='Name of the virtual machine. Default is a random name.',
+    dest='name',
+    default=names.get_first_name()
+)
+parser.add_argument(
+    '-p', '--ports',
+    help='Ports to forward.',
+    dest='ports'
+)
+parser.add_argument(
+    '-r', '--root',
+    help='Path to a virtual machine image to use as root (base).',
+    dest='root_image_path'
+)
+parser.add_argument(
+    '-s', '--size',
+    help='Size of the virtual machine hard drive.',
+    dest='size'
+)
+parser.add_argument(
+    '-u', '--sockets',
+    help='Number of CPU sockets',
+    dest='sockets'
+)
+parser.add_argument(
+    '-t', '--threads',
+    help='Number of threads by core.',
+    dest='threads'
+)
 parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + '1.0.0')
-
-
 
 args = parser.parse_args()
 
@@ -93,41 +136,12 @@ vm_name = args.name.lower()
 if not vm_name in config:
     config[vm_name] = {}
 
-if args.boot != None:
-    config[vm_name]['boot'] = args.boot
+exclude_args = ["configuration_file_path"]
 
-if args.cores != None:
-    config[vm_name]['cores'] = args.cores
-
-if args.disk != None:
-    config[vm_name]['disk'] = args.disk
-
-if args.domains != None:
-    config[vm_name]['domains'] = args.domains
-
-if args.format != None:
-    config[vm_name]['format'] = args.format
-
-if args.hostname != None:
-    config[vm_name]['hostname'] = args.hostname
-
-if args.image != None:
-    config[vm_name]['image'] = args.image
-
-if args.memory != None:
-    config[vm_name]['memory'] = args.memory
-
-if args.ports != None:
-    config[vm_name]['ports'] = args.ports
-
-if args.size != None:
-    config[vm_name]['size'] = args.size
-
-if args.sockets != None:
-    config[vm_name]['sockets'] = args.sockets
-
-if args.threads != None:
-    config[vm_name]['threads'] = args.threads
+for key, value in vars(args).items():
+    if key in exclude_args or value is None:
+        continue
+    config[vm_name][key] = value
 
 with open(args.configuration_file_path, 'w') as configfile:
     config.write(configfile)
@@ -135,20 +149,27 @@ with open(args.configuration_file_path, 'w') as configfile:
 # Initialize Parameters.
 vm_boot = config.get(vm_name, 'boot', fallback='hdd')
 vm_cores = config.get(vm_name, 'cores', fallback='2')
-vm_disk = config.get(vm_name, 'disk', fallback='/dev/sr0')
+vm_disk = config.get(vm_name, 'disk', fallback='/dev/null')
 vm_domains = config.get(vm_name, 'domains', fallback='')
 vm_hostname = config.get(vm_name, 'hostname', fallback='%s-%s-%s' % (socket.gethostname(), os.getlogin(), vm_name))
 vm_format = config.get(vm_name, 'format', fallback='qcow2')
-vm_image = config.get(vm_name, 'image', fallback='%s/%s/%s.%s' % (os.path.expanduser('~'), 'VMs', vm_name, vm_format))
+vm_image = os.path.expanduser(
+    config.get(vm_name, 'image', fallback=os.path.join(os.path.expanduser('~/VMs'), '%s.%s' % (vm_name, vm_format)))
+)
 vm_memory = config.get(vm_name, 'memory', fallback='1G')
 vm_ports = config.get(vm_name, 'ports', fallback='22,80,443')
 vm_size = config.get(vm_name, 'size', fallback='20G')
 vm_sockets = config.get(vm_name, 'sockets', fallback='1')
 vm_threads = config.get(vm_name, 'threads', fallback='1')
 
+# Create the base directory of the vm_image if necessary
+vm_image_dir = os.path.dirname(vm_image)
+if not os.path.isdir(vm_image_dir):
+    os.makedirs(vm_image_dir)
+
 # Create virtual machine image if it does not exist.
 if not os.path.isfile(vm_image):
-    if args.root_image_path != None:
+    if args.root_image_path is not None:
         os.system('qemu-img create -f %s -b %s %s' % (vm_format, args.root_image_path, vm_image))
     else:
         if vm_boot != 'cdrom' and vm_boot != 'network':
@@ -163,7 +184,8 @@ for domain in [x for x in vm_domains.split(',') if x]:
     vm_network = '%s,dnssearch=%s' % (vm_network, domain)
 
 for port in [x for x in vm_ports.split(',') if x]:
-    fw_port = getFwPort(port)
+    fw_port = get_fw_port(port)
+    print("Forward port %s to %s." % (port, fw_port))
     vm_network = '%s,hostfwd=tcp::%s-:%s' % (vm_network, fw_port, port)
 
 # Build boot option
@@ -186,4 +208,5 @@ os.system('qemu-system-x86_64 -enable-kvm -smp cores=%s,threads=%s,sockets=%s -h
     vm_network,
     vm_memory,
     vm_boot_option,
-    vm_disk))
+    vm_disk
+))
