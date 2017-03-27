@@ -1,0 +1,189 @@
+#!/usr/bin/env python3
+#
+#    Copyright 2017 Julien Girard 
+#
+#    Licensed under the GNU GENERAL PUBLIC LICENSE, Version 3 ;
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#      http://http://www.gnu.org/licenses/gpl-3.0.html
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+
+version = '1.0.0-8ea42ea'
+
+import argparse
+import configparser
+import names
+import os
+import random
+import socket
+
+def getFwPort(port):
+    return random.randrange(1024, 32768, 1)
+
+# Parse command line arguments.
+parser = argparse.ArgumentParser(description='Because sometimes you don\'t need a full stack')
+
+parser.add_argument('-b', '--boot',
+        help='Boot option. Can be hdd, cdrom or network.',
+        dest='boot')
+parser.add_argument('-c', '--cores',
+        help='Number of cores for the virtual machine.',
+        dest='cores')
+parser.add_argument('-d', '--disk',
+        help='Path to a disk image',
+        dest='disk')
+parser.add_argument('-e', '--domains',
+        help='DNS to look for.',
+        dest='domains')
+parser.add_argument('--file', 
+	   help='Path to the configuration file. Default is ~/.openstick',
+	   dest='configuration_file_path',
+	   default=os.path.expanduser('~') + '/.openstick')
+parser.add_argument('-f', '--format',
+        help='Format to use for images.',
+        dest='format')
+parser.add_argument('-j', '--hostname',
+        help='Hostname of the virtual machine.',
+        dest='hostname')
+parser.add_argument('-i', '--image',
+        help='Virtual machine hard drive image path',
+        dest='image')
+parser.add_argument('-m', '--memory',
+        help='Memory size of the virtual machine.',
+        dest='memory')
+parser.add_argument('-n', '--name', 
+	   help='Name of the virtual machine. Default is a random name.',
+	   dest='name',
+	   default=names.get_first_name())
+parser.add_argument('-p', '--ports',
+        help='Ports to forward.',
+        dest='ports')
+parser.add_argument('-r', '--root', 
+        help='Path to a virtual machine image to use as root (base).',
+        dest='root_image_path')
+parser.add_argument('-s', '--size',
+        help='Size of the virtual machine hard drive.',
+        dest='size')
+parser.add_argument('-u', '--sockets',
+        help='Number of CPU sockets',
+        dest='sockets')
+parser.add_argument('-t', '--threads',
+        help='Number of threads by core.',
+        dest='threads')
+parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + '1.0.0')
+
+
+
+args = parser.parse_args()
+
+# Parse configuration file.
+config = configparser.ConfigParser()
+config.read(args.configuration_file_path)
+
+# Write specified values to configuration file.
+vm_name = args.name.lower()
+
+if not vm_name in config:
+    config[vm_name] = {}
+
+if args.boot != None:
+    config[vm_name]['boot'] = args.boot
+
+if args.cores != None:
+    config[vm_name]['cores'] = args.cores
+
+if args.disk != None:
+    config[vm_name]['disk'] = args.disk
+
+if args.domains != None:
+    config[vm_name]['domains'] = args.domains
+
+if args.format != None:
+    config[vm_name]['format'] = args.format
+
+if args.hostname != None:
+    config[vm_name]['hostname'] = args.hostname
+
+if args.image != None:
+    config[vm_name]['image'] = args.image
+
+if args.memory != None:
+    config[vm_name]['memory'] = args.memory
+
+if args.ports != None:
+    config[vm_name]['ports'] = args.ports
+
+if args.size != None:
+    config[vm_name]['size'] = args.size
+
+if args.sockets != None:
+    config[vm_name]['sockets'] = args.sockets
+
+if args.threads != None:
+    config[vm_name]['threads'] = args.threads
+
+with open(args.configuration_file_path, 'w') as configfile:
+    config.write(configfile)
+
+# Initialize Parameters.
+vm_boot = config.get(vm_name, 'boot', fallback='hdd')
+vm_cores = config.get(vm_name, 'cores', fallback='2')
+vm_disk = config.get(vm_name, 'disk', fallback='/dev/sr0')
+vm_domains = config.get(vm_name, 'domains', fallback='')
+vm_hostname = config.get(vm_name, 'hostname', fallback='%s-%s-%s' % (socket.gethostname(), os.getlogin(), vm_name))
+vm_format = config.get(vm_name, 'format', fallback='qcow2')
+vm_image = config.get(vm_name, 'image', fallback='%s/%s/%s.%s' % (os.path.expanduser('~'), 'VMs', vm_name, vm_format))
+vm_memory = config.get(vm_name, 'memory', fallback='1G')
+vm_ports = config.get(vm_name, 'ports', fallback='22,80,443')
+vm_size = config.get(vm_name, 'size', fallback='20G')
+vm_sockets = config.get(vm_name, 'sockets', fallback='1')
+vm_threads = config.get(vm_name, 'threads', fallback='1')
+
+# Create virtual machine image if it does not exist.
+if not os.path.isfile(vm_image):
+    if args.root_image_path != None:
+        os.system('qemu-img create -f %s -b %s %s' % (vm_format, args.root_image_path, vm_image))
+    else:
+        if vm_boot != 'cdrom' and vm_boot != 'network':
+            print('You\'re trying to create a new virtual machine but does not specify boot from cdrom or network.')
+            exit(1)
+        else:
+            os.system('qemu-img create -f %s %s %s' % (vm_format, vm_image, vm_size))
+
+# Build network configuration
+vm_network = 'user,id=net0,hostname=%s' % vm_hostname
+for domain in [x for x in vm_domains.split(',') if x]:
+    vm_network = '%s,dnssearch=%s' % (vm_network, domain)
+
+for port in [x for x in vm_ports.split(',') if x]:
+    fw_port = getFwPort(port)
+    vm_network = '%s,hostfwd=tcp::%s-:%s' % (vm_network, fw_port, port)
+
+# Build boot option
+if vm_boot == 'hdd':
+    vm_boot_option = 'c'
+elif vm_boot == 'cdrom':
+    vm_boot_option = 'd'
+elif vm_boot == 'network':
+    vm_boot_option = 'n'
+else:
+    print('Invalid boot option: \'%s\'' % vm_boot)
+    exit(2)
+
+# Start virtual machine.
+os.system('qemu-system-x86_64 -enable-kvm -smp cores=%s,threads=%s,sockets=%s -hda %s -device virtio-net-pci,netdev=net0,id=nic0 -netdev %s -m %s -boot %s -cdrom %s -monitor stdio' % (
+    vm_cores,
+    vm_threads,
+    vm_sockets,
+    vm_image,
+    vm_network,
+    vm_memory,
+    vm_boot_option,
+    vm_disk))

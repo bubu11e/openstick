@@ -1,0 +1,27 @@
+#!/bin/bash
+#
+#    Copyright 2017 Julien Girard 
+#
+#    Licensed under the GNU GENERAL PUBLIC LICENSE, Version 3 ;
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#      http://http://www.gnu.org/licenses/gpl-3.0.html
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+
+#
+# This script update the revision in the common revision file using git commit hash.
+#
+
+readonly git_root="$(git rev-parse --show-toplevel)"
+readonly git_revision="$(git log --pretty=format:'%h' -n 1)"
+
+readonly openstick_version='0.1.0'
+
+sed "s/version = '[0-9]\+\.[0-9]\+\.[0-9]\+-[a-z0-9]\+'/version = '${openstick_version}-${git_revision}'/g" -i "${git_root}/openstick"
