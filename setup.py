@@ -16,12 +16,11 @@
 #
 
 from setuptools import setup, find_packages
-
 # Thanks Sam & Max : http://sametmax.com/creer-un-setup-py-et-mettre-sa-bibliotheque-python-en-ligne-sur-pypi/
 
 setup(
     name='openstick',
-    version='1.0.0',
+    version="1.0.0",
     packages=find_packages(),
     author="Julien GIRARD",
     author_email="julien.girard.ju@gmail.com",

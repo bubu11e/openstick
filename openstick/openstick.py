@@ -23,9 +23,6 @@ import names
 import os
 import socket
 
-version = '1.0.0-8ea42ea'
-
-
 def get_open_port():
     """
     http://stackoverflow.com/questions/2838244/get-open-tcp-port-in-python/2838309#2838309
@@ -42,6 +39,7 @@ def get_open_port():
 
 def get_fw_port(port):
     return get_open_port()
+
 
 def main():
     # Parse command line arguments.
@@ -124,7 +122,6 @@ def main():
         help='Number of threads by core.',
         dest='threads'
     )
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + '1.0.0')
 
     args = parser.parse_args()
 
