@@ -20,12 +20,14 @@ from setuptools import setup, find_packages
 
 setup(
     name='openstick',
-    version="1.0.0",
+    version="1.1.0",
     packages=find_packages(),
     author="Julien GIRARD",
     author_email="julien.girard.ju@gmail.com",
     description="Because sometimes you don't need a full stack",
-    long_description=open('README.md').read(),
+    long_description="Because sometimes you don't need a full stack",
+    # Active la prise en compte du fichier MANIFEST.in
+    include_package_data=True,
     install_requires=['names'],
     url='https://github.com/julien-girard/openstick',
     entry_points={
