@@ -1,6 +1,18 @@
 # OpenStick
 A simple tool to manage a pool of VMs using Qemu/KVM. Because sometimes you don't need a full stack.
 
+# Configuration
+OpenStick use by default a configuration file (~/.openstick) with INI structure. A DEFAULT section can be used to specify parameters to apply to all the VMs.
+
+Sample:
+-------------------------
+[DEFAULT]
+ports = 22,80,443,16852
+
+[carl]
+memory = 2G
+-------------------------
+
 # ToDo
 - Display VM configuration before startup
 - Intelligent port generator
