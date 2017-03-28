@@ -1,6 +1,9 @@
 # OpenStick
 A simple tool to manage a pool of VMs using Qemu/KVM. Because sometimes you don't need a full stack.
 
+# Installation
+    pip3 install openstick
+
 # Configuration
 OpenStick use by default a configuration file (~/.openstick) with INI structure. A DEFAULT section can be used to specify parameters to apply to all the VMs.
 
