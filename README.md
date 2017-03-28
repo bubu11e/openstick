@@ -6,11 +6,11 @@ OpenStick use by default a configuration file (~/.openstick) with INI structure.
 
 Sample:
 -------------------------
-[DEFAULT]
-ports = 22,80,443,16852
+    [DEFAULT]
+    ports = 22,80,443,16852
 
-[carl]
-memory = 2G
+    [carl]
+    memory = 2G
 -------------------------
 
 # ToDo
