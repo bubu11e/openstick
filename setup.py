@@ -20,7 +20,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='openstick',
-    version="1.1.0",
+    version="1.1.1",
     packages=find_packages(),
     author="Julien GIRARD",
     author_email="julien.girard.ju@gmail.com",
@@ -32,7 +32,9 @@ setup(
     url='https://github.com/julien-girard/openstick',
     entry_points={
         'console_scripts': [
-            'openstick = openstick.openstick:main']
+            'openstick = openstick.openstick:launch',
+            'openstick_ls = openstick.openstick:list'
+            ]
     },
     scripts=[],
 

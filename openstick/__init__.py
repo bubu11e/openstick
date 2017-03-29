@@ -16,4 +16,5 @@
 #    limitations under the License.
 #
 
-from openstick.openstick import main
+from openstick.openstick import launch
+from openstick.openstick import list

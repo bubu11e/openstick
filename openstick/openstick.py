@@ -41,7 +41,7 @@ def get_fw_port(port):
     return get_open_port()
 
 
-def main():
+def launch():
     # Parse command line arguments.
     parser = argparse.ArgumentParser(description='Because sometimes you don\'t need a full stack')
 
@@ -210,6 +210,28 @@ def main():
         vm_disk
     ))
 
+
+def list():
+    # Parse command line arguments.
+    parser = argparse.ArgumentParser(description='Because sometimes you don\'t need a full stack')
+
+    parser.add_argument(
+        '--file',
+        help='Path to the configuration file. Default is ~/.openstick',
+        dest='configuration_file_path',
+        default=os.path.expanduser('~') + '/.openstick'
+    )
+
+    args = parser.parse_args()
+
+    # Parse configuration file.
+    config = configparser.ConfigParser()
+    config.read(args.configuration_file_path)
+
+    for name in config.sections():
+        print(name)
+
+
 # Launch main if call as a script
 if __name__ == '__main__':
-    main()
+    launch()
