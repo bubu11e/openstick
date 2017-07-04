@@ -38,7 +38,11 @@ def get_open_port():
 
 
 def get_fw_port(port):
-    return get_open_port()
+    if ":" in port:
+        fw_port = port.split(":")[-1]
+    else:
+        fw_port = get_open_port()
+    return fw_port
 
 
 def launch():
@@ -182,9 +186,15 @@ def launch():
     for domain in [x for x in vm_domains.split(',') if x]:
         vm_network = '%s,dnssearch=%s' % (vm_network, domain)
 
+    print("VM name is : %s" % vm_name)
+
     for port in [x for x in vm_ports.split(',') if x]:
         fw_port = get_fw_port(port)
-        print("Forward port %s to %s." % (port, fw_port))
+        if ":" in port:
+            port = port.split(":")[0]
+        else:
+            pass
+        print("Forward port %s to : %s" % (port, fw_port))
         vm_network = '%s,hostfwd=tcp::%s-:%s' % (vm_network, fw_port, port)
 
     # Build boot option
