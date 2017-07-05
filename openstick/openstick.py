@@ -16,7 +16,6 @@
 #    limitations under the License.
 #
 
-
 import argparse
 import configparser
 import names
@@ -28,18 +27,35 @@ def get_open_port():
     http://stackoverflow.com/questions/2838244/get-open-tcp-port-in-python/2838309#2838309
     :return: free port
     """
-    import socket
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(("", 0))
-    s.listen(1)
-    port = s.getsockname()[1]
-    s.close()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("", 0))
+        s.listen(1)
+        port = s.getsockname()[1]
     return port
+
+
+def is_open_port(port):
+    p = int(port)
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            # Test if port is open
+            s.bind(("", p))
+            is_open = p
+        except socket.error as e:
+            # If port is use, we try with next port
+            if e.errno == 98:
+                is_open = port_is_open(p + 1)
+            else:
+                print(e)
+        except OverflowError as e:
+            # If port is overflow, we get a random open port
+            is_open = get_open_port()
+    return is_open
 
 
 def get_fw_port(port):
     if ":" in port:
-        fw_port = port.split(":")[-1]
+        fw_port = is_open_port(port.split(":")[-1])
     else:
         fw_port = get_open_port()
     return fw_port
@@ -188,6 +204,7 @@ def launch():
 
     print("VM name is : %s" % vm_name)
 
+    # Forward port
     for port in [x for x in vm_ports.split(',') if x]:
         fw_port = get_fw_port(port)
         if ":" in port:
