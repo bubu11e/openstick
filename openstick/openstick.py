@@ -44,7 +44,7 @@ def is_open_port(port):
         except socket.error as e:
             # If port is use, we try with next port
             if e.errno == 98:
-                is_open = port_is_open(p + 1)
+                is_open = is_open_port(p + 1)
             else:
                 print(e)
         except OverflowError as e:
