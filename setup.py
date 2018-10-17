@@ -29,7 +29,7 @@ setup(
     # Active la prise en compte du fichier MANIFEST.in
     include_package_data=True,
     install_requires=['names'],
-    url='https://github.com/julien-girard/openstick',
+    url='https://github.com/bubu11e/openstick',
     entry_points={
         'console_scripts': [
             'openstick = openstick.openstick:launch',
